@@ -20,7 +20,7 @@ def read_mmf_file(input_filename):
     categories = []
     for recipe in recipes:
         line = re.findall("Categories:.*",recipe)
-        raw_categories = re.findall("[\w\s]+(?=\r)|[\w]+(?=,)",line[0])
+        raw_categories = re.findall("[\w]+(?=\r)|[\w]+(?=,)",line[0])
         categories.append(raw_categories)           
         
     ingredients = []
