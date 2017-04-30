@@ -4,9 +4,10 @@ import os
 import numpy as np
 import re
 
-input_filename = 'recipes' + os.sep + '10000.mmf'
-
-recipes, categories, ingredients = mmf.read_mmf_file(input_filename)
+#input_filename = 'recipes' + os.sep + '10000.mmf'
+#recipes, categories, ingredients = mmf.read_mmf_file(input_filename)
+source_directory = "." + os.sep + "recipes"
+recipes, categories, ingredients = mmf.read_mmf_dir(source_directory)
 
 
 #--------------------------------ingredients-----------------------------------
@@ -20,15 +21,17 @@ for index, ingredient in enumerate(all_ingredients):
  
 from sklearn.feature_extraction.text import CountVectorizer
 count_vect_ing = CountVectorizer()
-term_doc_ing = count_vect_ing.fit_transform(all_ingredients).toarray()
-inv_trans = count_vect_ing.inverse_transform(term_doc_ing)
+#term_doc_ing = count_vect_ing.fit_transform(all_ingredients).toarray()
+term_doc_ing = count_vect_ing.fit_transform(all_ingredients)
+#inv_trans = count_vect_ing.inverse_transform(term_doc_ing)
 
 num_unique_ing = np.shape(term_doc_ing)[1]
 num_ing = np.shape(term_doc_ing)[0]
 print("there are", num_unique_ing, "unique ingredients out of",num_ing)
 
 import matplotlib.pyplot as plt
-ingredient_freq = np.sum(term_doc_ing, axis=0)
+#ingredient_freq = np.sum(term_doc_ing, axis=0)
+ingredient_freq = np.asarray( term_doc_ing.sum(axis=0) )[0]
 sorted_ingredient_freqs = np.flipud(np.argsort(ingredient_freq))
 
 fig = plt.figure()
