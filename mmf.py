@@ -34,6 +34,33 @@ def read_mmf_file(input_filename):
         ingredients.append(ingredient_list)
             
     return recipes, categories, ingredients
+
+def read_mmf_dir(source_directory):
+    import os
+    
+    recipes = []
+    categories = []
+    ingredients = []
+    
+    input_filenames = os.listdir(source_directory)
+    for index, input_filename in enumerate(input_filenames):
+        input_filenames[index] = source_directory + os.sep + input_filename
+    
+    for index, input_filename in enumerate(input_filenames):
+        try:
+            recipes_tmp, cat_tmp, ing_tmp = read_mmf_file(input_filename)
+            if not recipes:
+                recipes = recipes_tmp
+                categories = cat_tmp
+                ingredients = ing_tmp
+            else:
+                recipes.extend(recipes_tmp)
+                categories.extend(cat_tmp)
+                ingredients.extend(ing_tmp)
+        except Exception:
+            print("Error reading ", input_filename, ", skipping.")            
+            
+    return recipes, categories, ingredients   
     
 if __name__ == "__main__":
     main()
