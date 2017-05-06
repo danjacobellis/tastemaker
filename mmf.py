@@ -57,6 +57,7 @@ def read_mmf_dir(source_directory):
                 recipes.extend(recipes_tmp)
                 categories.extend(cat_tmp)
                 ingredients.extend(ing_tmp)
+            print("Successfully read ", input_filename)
         except Exception:
             print("Error reading ", input_filename, ", skipping.")            
             
