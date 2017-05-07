@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The TasteMaker</title>
+
+    <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+    <script src="main.js"></script>
+</head>
+<body>
+
+<div id="container">
+    <h1>The tastemaker</h1>
+    <form id="form" method="post" action="/infer" enctype="multipart/form-data">
+        <input type="file" name="pic" id="pic" accept="image/jpeg" />
+        <input type="submit" value="Submit" />
+    </form>
+</div>
+
+</body>
+</html>

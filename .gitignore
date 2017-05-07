@@ -1,2 +1,6 @@
 image_classifier/dish/retrain_logs/
 image_classifier/ethnicity/retrain_logs
+
+.idea/
+.ipynb_checkpoints
+__pycache__/
