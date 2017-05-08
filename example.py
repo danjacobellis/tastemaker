@@ -54,7 +54,7 @@ freqs = ingredient_freq[top_ind]
 print("Most common ingredients:\n", labels)
 print("Number of occurances:\n",freqs)
 
-#--------------------------------ingredients-----------------------------------
+#--------------------------------categories-----------------------------------
 all_categories = []
 for category_list in categories:
     for category in category_list:
@@ -94,6 +94,10 @@ labels = count_vect_cat.inverse_transform(keep_term_doc)
 freqs = category_freq[top_ind]
 
 print("Most common categories:", labels,freqs)
+
+recipes = {'raw_text':recipes, 'categories':categories, 'ingredients':ingredients}
+
+
 
 
 
