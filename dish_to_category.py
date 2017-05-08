@@ -89,7 +89,7 @@ def generate_features_and_labels():
                      
     dishes_str = count_vect.inverse_transform(feature_mapping)
     categories_str = count_vect.inverse_transform(label_mapping)
-    return X_t, Y_t, dishes_str, categories_str, recipes_used, feature_mapping, label_mapping
+    return X_t, Y_t, dishes_str, categories_str, recipes_used, feature_mapping, label_mapping, feature_mlb, label_mlb
 
 def train_multi_label_classifier(X,Y):
     n,q = np.shape(Y)
@@ -164,11 +164,14 @@ def predict_from_pretrained_models(top5_str, top5_proba):
     import numpy as np
     import xgboost as xgb
     import os
+    from sklearn.preprocessing import MultiLabelBinarizer
     
     dishes_str = np.load("dishes_str.npy")
     categories_str = np.load("categories_str.npy")
     feature_mapping = np.load("feature_mapping.npy")
     label_mapping = np.load("label_mapping.npy")
+    feature_mlb = np.load("feature_mlb.npy")[()]
+    label_mlb = np.load("label_mlb.npy")[()]
     
     models = [];
     for index, category in enumerate(categories_str):
@@ -177,6 +180,14 @@ def predict_from_pretrained_models(top5_str, top5_proba):
                           + str(index).zfill(3) + "dish_to_category_xgb.model")
         model = bst.load_model(model_filename)
         models.append(model)   
+        
+    ind = np.argsort(top5_str)
+    top5_str = top5_str[ind]
+    top5_proba = top5_proba[ind]
+    
+    ind = np.where((dishes_str == top5_str).sum(axis = 1))
+        
+    return predicted_categories
     
 if __name__ == "__main__":
     import numpy as np
@@ -187,12 +198,14 @@ if __name__ == "__main__":
     
     if not 'X' in globals():
         X, Y, dishes_str, categories_str, recipes_used, \
-        feature_mapping, label_mapping \
+        feature_mapping, label_mapping, feature_mlb, label_mlb \
         = generate_features_and_labels()
         np.save("dishes_str.npy", dishes_str)
         np.save("categories_str.npy", categories_str)
         np.save("feature_mapping.npy", feature_mapping)
         np.save("label_mapping.npy", label_mapping)
+        np.save("feature_mlb.npy", feature_mlb)
+        np.save("label_mlb.npy", label_mlb)
     print("done encoding features and labels")
     
     print("example of data format:\n")
