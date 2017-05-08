@@ -168,8 +168,8 @@ def predict_from_pretrained_models(top5_str, top5_proba):
     
     dishes_str = np.load("dishes_str.npy")
     categories_str = np.load("categories_str.npy")
-    feature_mapping = np.load("feature_mapping.npy")
-    label_mapping = np.load("label_mapping.npy")
+    feature_mapping = np.load("feature_mapping.npy")[()]
+    label_mapping = np.load("label_mapping.npy")[()]
     feature_mlb = np.load("feature_mlb.npy")[()]
     label_mlb = np.load("label_mlb.npy")[()]
     
@@ -178,15 +178,29 @@ def predict_from_pretrained_models(top5_str, top5_proba):
         bst = xgb.Booster({'nthread':4})
         model_filename = (os.getcwd() + os.sep + 'models' + os.sep \
                           + str(index).zfill(3) + "dish_to_category_xgb.model")
-        model = bst.load_model(model_filename)
+        bst.load_model(model_filename)
+        model = bst
         models.append(model)   
         
     ind = np.argsort(top5_str)
     top5_str = top5_str[ind]
     top5_proba = top5_proba[ind]
     
+    p = dishes_str.size
+    q = categories_str.size    
+    
     ind = np.where((dishes_str == top5_str).sum(axis = 1))
-        
+    row,col = np.where(feature_mapping[ind].toarray())
+    X = [col]
+    X_t = feature_mlb.transform(X)
+    
+    dtest = xgb.DMatrix(X_t)
+    operating_point = 0.7
+    offset = operating_point - 0.5
+    preds = np.zeros((q))
+    for index, model in enumerate(models):
+        preds[index] = np.round(model.predict(dtest) + offset)
+    predicted_categories = categories_str[np.where(preds)[0]]
     return predicted_categories
     
 if __name__ == "__main__":
