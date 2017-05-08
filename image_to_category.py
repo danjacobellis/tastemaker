@@ -99,4 +99,5 @@ if __name__ == '__main__':
     tastemaker_path = os.getcwd() + os.sep
     image_path = tastemaker_path + 'pizza.jpg'
     predicted_categories = image_to_category(image_path)
+    print(predicted_categories)
     
