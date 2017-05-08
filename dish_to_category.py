@@ -166,12 +166,17 @@ def predict_from_pretrained_models(top5_str, top5_proba):
     import os
     from sklearn.preprocessing import MultiLabelBinarizer
     
-    dishes_str = np.load("dishes_str.npy")
-    categories_str = np.load("categories_str.npy")
-    feature_mapping = np.load("feature_mapping.npy")[()]
-    label_mapping = np.load("label_mapping.npy")[()]
-    feature_mlb = np.load("feature_mlb.npy")[()]
-    label_mlb = np.load("label_mlb.npy")[()]
+    if (os.getcwd()[-3:] == 'web'):
+        tastemaker_path = os.path.dirname(os.getcwd()) + os.sep
+    else:
+        tastemaker_path = os.getcwd() + os.sep
+    
+    dishes_str = np.load(tastemaker_path + "dishes_str.npy")
+    categories_str = np.load(tastemaker_path + "categories_str.npy")
+    feature_mapping = np.load(tastemaker_path + "feature_mapping.npy")[()]
+#    label_mapping = np.load(tastemaker_path + "label_mapping.npy")[()]
+    feature_mlb = np.load(tastemaker_path + "feature_mlb.npy")[()]
+#    label_mlb = np.load(tastemaker_path + "label_mlb.npy")[()]
     
     models = [];
     for index, category in enumerate(categories_str):

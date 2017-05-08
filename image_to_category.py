@@ -83,7 +83,11 @@ def run_inference_on_image(imagePath, modelFullPath, labelsFullPath):
 
 def image_to_category(image_path):
     import os
-    tastemaker_path = os.getcwd() + os.sep
+    if (os.getcwd()[-3:] == 'web'):
+        tastemaker_path = os.path.dirname(os.getcwd()) + os.sep
+    else:
+        tastemaker_path = os.getcwd() + os.sep
+                                   
     modelFullPath = tastemaker_path + 'image_classifier' + os.sep + 'dish' + os.sep + 'output_graph.pb'
     labelsFullPath = tastemaker_path + 'image_classifier' + os.sep + 'dish' + os.sep + 'output_labels.txt'
     top5_labels, top5_proba  = run_inference_on_image(image_path, modelFullPath, labelsFullPath)
@@ -92,7 +96,7 @@ def image_to_category(image_path):
         
     from dish_to_category import predict_from_pretrained_models    
     predicted_categories = predict_from_pretrained_models(top5_labels, top5_proba)
-    return predicted_categories
+    return predicted_categories, top5_labels, top5_proba
     
 if __name__ == '__main__':
     import os
