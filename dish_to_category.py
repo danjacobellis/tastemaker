@@ -89,7 +89,7 @@ def generate_features_and_labels():
                      
     dishes_str = count_vect.inverse_transform(feature_mapping)
     categories_str = count_vect.inverse_transform(label_mapping)
-    return X_t, Y_t, dishes_str, categories_str, recipes_used
+    return X_t, Y_t, dishes_str, categories_str, recipes_used, feature_mapping, label_mapping
 
 def train_multi_label_classifier(X,Y):
     n,q = np.shape(Y)
@@ -99,6 +99,10 @@ def train_multi_label_classifier(X,Y):
         y = Y[:,label]
         model = train_single_label_classifier(X,y)
         models.append(model)
+        import os
+        model_filename = (os.getcwd() + os.sep + 'models' + os.sep \
+                          + str(label).zfill(3) + "dish_to_category_xgb.model")
+        model.save_model(model_filename)
     return models
 
 def train_single_label_classifier(X,y):
@@ -111,44 +115,24 @@ def train_single_label_classifier(X,y):
 #    model = xgb.XGBClassifier(max_depth = 8, nthread = 4).fit(X, y)
     return model
     
-    
-if __name__ == "__main__":
-    import numpy as np
-    import scipy as sp
-    import matplotlib.pyplot as plt
-    import xgboost as xgb
-    from tqdm import tqdm
-    
-    if not 'X' in globals():
-        X, Y, dishes_str, categories_str, recipes_used\
-        = generate_features_and_labels()
-    print("done encoding features and labels")
-    
-    print("example of data format:\n")
-    print(">>recipes_used[0]['raw_text']")
-    print(recipes_used[0]['raw_text'])
-    print(">>dishes_str[np.where(X[0,:])[0][0]]")
-    print(dishes_str[np.where(X[0,:])[0][0]])
-    print(">>categories_str[np.where(Y[0,:])[0][0]]")
-    print(categories_str[np.where(Y[0,:])[0][0]])
-        
-    n, p = np.shape(X)
-    n, q = np.shape(Y)
-    split = int(np.round(0.1*n))
-    X_test = X[:split,:]
-    Y_test = Y[:split,:]
-    X_train = X[split:,:]
-    Y_train = Y[split:,:]
-    
-    models = train_multi_label_classifier(X_train,Y_train)
-    
+def eval_accuracy(models, X_test, Y_test, operating_point):
+    num_test_samples = np.shape(X_test)[0]
     dtest = xgb.DMatrix(X_test)
     preds = np.zeros(np.shape(Y_test))
-    offset = 0
+    offset = operating_point - 0.5
     for index, model in enumerate(models):
         preds[:,index] = np.round(model.predict(dtest) + offset)
+    plt.figure(1, figsize=(28, 2))
     plt.imshow(preds.T)
+    plt.ylabel('Category')
+    plt.xlabel('Test Sample Index')
+    plt.title('Model Predictions')
     
+    plt.figure(2, figsize=(28, 2))
+    plt.imshow(Y_test.T)
+    plt.ylabel('Category')
+    plt.xlabel('Test Sample Index')
+    plt.title('True Test Labels')
     num_tp = 0
     num_fp = 0
     num_tn = 0
@@ -157,8 +141,8 @@ if __name__ == "__main__":
     fp = []
     tn = []
     fn = []
-    for i in np.array([21]):
-#    for i in range(split):
+
+    for i in range(num_test_samples):
         model_true = np.where(preds[i,:] == 1)
         model_false = np.where(preds[i,:] == 0)
         data_true = np.where(Y_test[i,:] == 1)
@@ -173,7 +157,73 @@ if __name__ == "__main__":
         num_fn += fn[-1].size
 #    accuracy = (num_tp + num_tn) / (num_tp + num_tn + num_fp + num_fn)
     accuracy = (num_tp + num_tn) / (num_tp + num_fp)
-    print("\naccuracy:",accuracy)
+    print("\naccuracy:", accuracy)
+    return accuracy, tp, num_tp, fp, num_fp, tn, num_tn, fn, num_fn    
+
+def predict_from_pretrained_models(top5_str, top5_proba):
+    import numpy as np
+    import xgboost as xgb
+    import os
+    
+    dishes_str = np.load("dishes_str.npy")
+    categories_str = np.load("categories_str.npy")
+    feature_mapping = np.load("feature_mapping.npy")
+    label_mapping = np.load("label_mapping.npy")
+    
+    models = [];
+    for index, category in enumerate(categories_str):
+        bst = xgb.Booster({'nthread':4})
+        model_filename = (os.getcwd() + os.sep + 'models' + os.sep \
+                          + str(index).zfill(3) + "dish_to_category_xgb.model")
+        model = bst.load_model(model_filename)
+        models.append(model)   
+    
+if __name__ == "__main__":
+    import numpy as np
+    import scipy as sp
+    import matplotlib.pyplot as plt
+    import xgboost as xgb
+    from tqdm import tqdm
+    
+    if not 'X' in globals():
+        X, Y, dishes_str, categories_str, recipes_used, \
+        feature_mapping, label_mapping \
+        = generate_features_and_labels()
+        np.save("dishes_str.npy", dishes_str)
+        np.save("categories_str.npy", categories_str)
+        np.save("feature_mapping.npy", feature_mapping)
+        np.save("label_mapping.npy", label_mapping)
+    print("done encoding features and labels")
+    
+    print("example of data format:\n")
+    print(">>recipes_used[0]['raw_text']")
+    print(recipes_used[0]['raw_text'])
+    print(">>dishes_str[np.where(X[0,:])[0][0]]")
+    print(dishes_str[np.where(X[0,:])[0][0]])
+    print(">>categories_str[np.where(Y[0,:])[0][0]]")
+    print(categories_str[np.where(Y[0,:])[0][0]])
+        
+    n, p = np.shape(X)
+    n, q = np.shape(Y)
+    
+#    models were trained with 90-10 split
+#    split = int(np.round(0.1*n))
+
+#    only show half of the test data
+    split = int(np.round(0.05*n))
+    
+    X_test = X[:split,:]
+    Y_test = Y[:split,:]
+    X_train = X[split:,:]
+    Y_train = Y[split:,:]
+    
+    if not 'models' in globals():
+        models = train_multi_label_classifier(X_train,Y_train)
+    
+    accuracy, tp, num_tp, fp, num_fp, tn, num_tn, fn, num_fn \
+    = eval_accuracy(models, X_test, Y_test, 0.7)
+    
+    
     
     
     
