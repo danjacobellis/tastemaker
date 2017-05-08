@@ -105,8 +105,8 @@ def train_single_label_classifier(X,y):
     dtrain = xgb.DMatrix(X,label=y)
     param = {'objective':'binary:logistic','nthread':4,
              'nfold':10,'max_depth':8}
-    xgb.cv(params = param, dtrain = dtrain, metrics={'error@0.1'}, seed = 0,
-       callbacks=[xgb.callback.print_evaluation(show_stdv=True)])
+#    xgb.cv(params = param, dtrain = dtrain, metrics={'error'}, seed = 0,
+#       callbacks=[xgb.callback.print_evaluation(show_stdv=True)])
     model = xgb.train(params = param, dtrain = dtrain)
 #    model = xgb.XGBClassifier(max_depth = 8, nthread = 4).fit(X, y)
     return model
@@ -134,13 +134,46 @@ if __name__ == "__main__":
         
     n, p = np.shape(X)
     n, q = np.shape(Y)
-    split = int(np.round(0.05*n))
+    split = int(np.round(0.1*n))
     X_test = X[:split,:]
     Y_test = Y[:split,:]
     X_train = X[split:,:]
-    Y_train = X[split:,:]
+    Y_train = Y[split:,:]
     
     models = train_multi_label_classifier(X_train,Y_train)
+    
+    dtest = xgb.DMatrix(X_test)
+    preds = np.zeros(np.shape(Y_test))
+    offset = 0
+    for index, model in enumerate(models):
+        preds[:,index] = np.round(model.predict(dtest) + offset)
+    plt.imshow(preds.T)
+    
+    num_tp = 0
+    num_fp = 0
+    num_tn = 0
+    num_fn = 0
+    tp = []
+    fp = []
+    tn = []
+    fn = []
+    for i in np.array([21]):
+#    for i in range(split):
+        model_true = np.where(preds[i,:] == 1)
+        model_false = np.where(preds[i,:] == 0)
+        data_true = np.where(Y_test[i,:] == 1)
+        data_false = np.where(Y_test[i,:] == 0)
+        tp.append(np.intersect1d(data_true,model_true))
+        fp.append(np.setdiff1d(data_true,model_true))
+        tn.append(np.intersect1d(data_false, model_false))
+        fn.append(np.setdiff1d(data_false,model_false))
+        num_tp += tp[-1].size
+        num_fp += fp[-1].size
+        num_tn += tn[-1].size
+        num_fn += fn[-1].size
+#    accuracy = (num_tp + num_tn) / (num_tp + num_tn + num_fp + num_fn)
+    accuracy = (num_tp + num_tn) / (num_tp + num_fp)
+    print("\naccuracy:",accuracy)
     
     
     
