@@ -1,7 +1,7 @@
 import os
 import imghdr
 
-image_dir = "/home/dan/Desktop/scraped/ethnicity"
+image_dir = "../../scrapers/ethnicity/google_dl"
 dirs = os.listdir(image_dir)
 bad_files = [];
 for directory in dirs:

@@ -8,10 +8,9 @@
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
-
   <link href="https://fonts.googleapis.com/css?family=Inknut+Antiqua|Open+Sans" rel="stylesheet">
 
-  <style>
+    <style>
       html {
         color: #333;
       }
@@ -29,26 +28,30 @@
 
       #container {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 400 px;
-        height: 400px;
-        margin-left: -200px;
-        margin-top: -200px;
         text-align: center;
+        margin: 0 auto;
+        width: 1000px;
       }
 
+      img {
+        max-width: 240px;
+        max-height: 240px;
+      }
   </style>
-
 </head>
 <body>
 
 <div id="container">
-    <h1>The tastemaker</h1>
-    <form id="form" method="post" action="/infer" enctype="multipart/form-data">
-        <input type="file" name="pic" id="pic" accept="image/jpeg" />
-        <input type="submit" value="Submit" />
-    </form>
+  <img src="upload.jpg" />
+
+  <h1>I am {{ prob * 100 }}% sure this dish is {{ dish }}.</h1>
+
+  <p>I think that {{ dish }} is in these categories: </p>
+  <ul>
+  {% for cat in categories %}
+    <li>{{ cat }}</li>
+  {% endfor %}
+  </ul>
 </div>
 
 </body>

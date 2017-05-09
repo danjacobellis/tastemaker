@@ -18,24 +18,28 @@ def infer():
     if request.method == 'POST':
         # check if the post request has the file part
         if 'pic' not in request.files:
-            return "Request does not contain file", 400
+            return "Request does not contain a file.", 400
         file = request.files['pic']
         # if user does not select file, browser also
         # submit a empty part without filename
         if file.filename == '':
-            return "Empty filename", 400
+            return "Empty filename.", 400
         if file:
             file.save(os.path.join('upload.jpg'))
 #            answer = run_inference_on_image()
             predicted_categories, top5_labels, top5_proba = image_to_category('upload.jpg')
-            print(answer)
-            return answer, 200
+            print(predicted_categories)
+            print(top5_labels)
+            print(top5_proba)
+            return render_template('result.html', categories=predicted_categories, dish=top5_labels[0], prob=top5_proba[0])
 
+@app.route('/upload.jpg')
+def uploaded_jpg():
+    return send_file('./upload.jpg', mimetype='image/jpeg')
 
-@app.route('/main.js')
-def js():
-    return send_file('main.js')
-
+@app.route('/style.css')
+def style():
+    return send_file('./style.css', mimetype='text/css')
 
 if __name__ == '__main__':
     app.run()
